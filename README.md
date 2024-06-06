@@ -1,30 +1,26 @@
 # Dynamic Bayesian Optimization Criterion for Data Staleness
 
-This repository contains the implementation of the criterion used by W-DBO, an fast algorithm for Dynamic Bayesian Optimization (DBO).
-This criterion aims to decrease the time needed to evaluate stale data points of a dataset to optimize continuously a function that is changing
+This repository contains the C++ implementation of the criterion used in W-DBO, an fast algorithm for Dynamic Bayesian Optimization (DBO).
+This criterion aims to decrease the time needed to evaluate stale data points in a dataset to optimize continuously a function that is changing
 over time.
-
-This package is used for the full W-DBO algorithm (wdbo name?).
 
 ## Content of the Project
 
-Data staleness is a major issue in DBO. To maximize the number of queries on the function that we want to optimize, the number of observations used by the Gaussian Process (GP) to do so needs to be limited to avoid the inference time of the GP to become too large (because it is of the order cube of the number of observations). This criterion helps to identify data points that no longer bring useful informations for the future queries of the GP to optimize our function over time.
+Data staleness is a major issue in DBO. To maximize the number of queries on the function that we want to optimize, the number of observations used by the Gaussian Process (GP) to do so needs to be limited to avoid the inference time of the GP to become too large (because it is of the order cube of the number of observations). This criterion helps to identify data points that no longer bring useful informations for the future queries of the GP.
 
-Other methods to identify stale data exist but are not on the same range of complexity as W-DBO. The criterion has been written in C++ using the linear algebra library Eigen. It is available for python programmer thanks to pybind11 as bindings package.
-
-Thanks to this criterion, W-DBO outperforms the other algorithms for DBO.
+Other methods to identify stale data exist but are not on the same range of complexity as W-DBO. The criterion has been written in C++ using the linear algebra library Eigen. It is available for python programmer thanks to Pybind11.
 
 ## How to use the package
 
-The package is unavailable on macos platforms. This is related to the fact that neither Apple clang nor clang++'s own stdlib have the Bessel functions implemented, which are essential for the criterion if the Matérn kernel is used. We recommend to use another platform using docker for example.
+The package is unavailable on MacOS platforms. Neither Apple clang nor clang++'s own stdlib have the Bessel functions implemented, which are essential for the criterion. We recommend to use another platform using Docker or a VM.
 
-On windows and Linux it's simple: the package is a simple function binded using pybind11. To use the criterion you just need to download it using `pip`
+On windows and Linux it's simple: the package is a simple function binded using Pybind11. You just need to download it using `pip`
 
 ```bash
 pip install wdbo_criterion
 ```
 
-2 Kernels can be used: RBF and Matérn. You can then use the criterion by calling the function as follows:
+Two Kernels can be used: RBF (Squared exponential) and Matérn. Here is an example:
 
 ```python
 import wdbo_criterion
@@ -40,7 +36,7 @@ t0 = 0.3383822445869446 # current time
 nu_t = 1.5
 
 normalize_criterion = 1
-verbose = 0 # 1 if you want to print the values passed
+verbose = 0 # 1 for debug mode
 
 inputs = np.array([
  [0.9687505, 0.33303383, 0.91202209, 0.05732997, 0.4390582],
@@ -59,23 +55,23 @@ result = wdbo_criterion.wasserstein_criterion(
 
 ```
 
-The package assumes that `numpy` arrays and matrices are used to provide the dataset because pybind11 that provides the bindings is optimized for this specific translation. Eigen requires contiguous arrays so maybe you'll need to use the function `np.ascontiguousarray`.
+The package assumes that `numpy` arrays and matrices are used to provide the dataset because Pybind11 that provides the bindings is optimized for this specific translation. Eigen requires contiguous arrays so maybe you'll need to use the function `np.ascontiguousarray`.
 
 The variable `result` will be an numpy array where each element $0 \leq i < n$ is the criterion associated with the element `inputs[i]`, `y[i]` and `time[i]`.
 
 ## Troubleshootings
 
-If, by installing the library using pip, you get an `libwdbo_bayesian.so is not found`, run the command
+If, by installing the library using pip, you get a `libwdbo_bayesian.so is not found`, run the command
 
 ```
-export LD_LIBRARY_PATH=/home/<user>/miniconda3/envs/pybind/lib/<python_version>/site-packages/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=<path to your python packages installed>:$LD_LIBRARY_PATH
 ```
 
 ## Context
 
-This project was my bachelor project (2024) at EPFL. It has been supervised by Anthony Bardou from the Information and Network Dynamics Lab (INDY) at EPFL, directed by Prof. Patrick Thiran and Matthias Grossglauser.
+This project is my bachelor project (2024) at EPFL. It has been supervised by Anthony Bardou from the Information and Network Dynamics Lab (INDY) at EPFL, directed by Prof. Patrick Thiran and Matthias Grossglauser.
 
-The project taught me a lot in the field of Bayesian Optimization (BO) and DBO. Many aspects of computer science in engineering has been involved (memory management, auto-differentiation, numerical methods) and I enjoyed working on the state of the art of DBO by implementing them and seeing the improvements made by this W-DBO algorithm and it's criterion.
+The project taught me a lot in the field of Bayesian Optimization (BO) and DBO. Many aspects of computer science in engineering have been involved (memory management, auto-differentiation, numerical methods) and I enjoyed working on the state of the art of DBO by implementing them and seeing the improvements made by W-DBO and it's criterion.
 
 ## License
 
@@ -84,5 +80,4 @@ wdbo_criterion is provided under a BSD-style license that can be found in the LI
 ## Links
 
 - Pypi repository of wdbo_criterion: https://pypi.org/project/wdbo-criterion/
-- Pypi repository of (name full algo) : TODO
-- ref papers?
+- Pypi repository of (name full algo) : https://pypi.org/project/wdbo-algo/
