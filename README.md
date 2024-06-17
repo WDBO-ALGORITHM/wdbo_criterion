@@ -1,14 +1,18 @@
 # Dynamic Bayesian Optimization Criterion for Data Staleness
 
-This repository contains the C++ implementation of the criterion used in W-DBO, an fast algorithm for Dynamic Bayesian Optimization (DBO).
-This criterion aims to decrease the time needed to evaluate stale data points in a dataset to optimize continuously a function that is changing
-over time.
+This repository contains the C++ implementation of the criterion used in W-DBO, a Dynamic Bayesian Optimization algorithm. It is a well-suited optimizer for a dynamic black-box function. This criterion aims to decrease the time needed to evaluate stale data points in a dataset to optimize continuously a function that is changing over time.
 
-## Content of the Project
+## Content and Context
 
-Data staleness is a major issue in DBO. To maximize the number of queries on the function that we want to optimize, the number of observations used by the Gaussian Process (GP) to do so needs to be limited to avoid the inference time of the GP to become too large (because it is of the order cube of the number of observations). This criterion helps to identify data points that no longer bring useful informations for the future queries of the GP.
+Some algorithms have been proposed to extend Bayesian Optimization (BO) to time-varying functions. This adaptation is known as Dynamic Bayesian Optimization (DBO). To achieve great performance, W-DBO from [1] uses a criterion that quantifies how relevant an observation is for the future predictions of the Gaussian Process. By evolving in time, the optimum of the function changes, and observations of the function become less relevant due to their lack of information on its future values. In a long-period time optimization, keeping all of them will impact the performance of the algorithm. In fact, the sampling frequency will decrease due to the growth of the Gaussian Process' inference time. To remove them rapidly, the criterion should be calculated efficiently in a low-level programming language. By speeding up the computations using C++ to calculate the criterion, W-DBO shown great improvements over state of the art solutions. As stated before, this repository contains (i) the C++ implementation of this criterion. The criterion is computed using the linear algebra library Eigen. It is available for python programmer thanks to Pybind11
 
-Other methods to identify stale data exist but are not on the same range of complexity as W-DBO. The criterion has been written in C++ using the linear algebra library Eigen. It is available for python programmer thanks to Pybind11.
+This project has been the bachelor project (2024) of [Giovanni Ranieri](https://flxinxout.github.io) at EPFL. It has been supervised by [Anthony Bardou](https://abardou.github.io/) from the Information and Network Dynamics Lab (INDY) at EPFL, directed by Prof. Patrick Thiran and Matthias Grossglauser.
+
+The project taught me a lot in the field of Bayesian Optimization (BO) and DBO. Many aspects of computer science in engineering have been involved (memory management, auto-differentiation, numerical methods) and I enjoyed working on the state of the art of DBO by implementing them and seeing the improvements made by W-DBO with the criterion.
+
+## W-DBO and Note To Developers
+
+The criterion is used in W-DBO, available as a Python package on this [link](https://github.com/WDBO-ALGORITHM/wdbo_algo). To use W-DBO, the developer do not need to call the criterion with parameters (everything is done behind the scene during the optimization, removing stale observations are simply done by some call of a function). For interested readers, [1] servs as mathematical reference for the overall algorithm W-DBO.
 
 ## How to use the package
 
@@ -17,10 +21,12 @@ The package is unavailable on MacOS platforms. Neither Apple clang nor clang++'s
 On windows and Linux it's simple: the package is a simple function binded using Pybind11. You just need to download it using `pip`
 
 ```bash
-pip install wdbo_criterion
+pip install wdbo-criterion
 ```
 
-Two Kernels can be used: RBF (Squared exponential) and Matérn. Here is an example:
+The criterion needs 2 kernels: 1 for the spatial dimensions and 1 for the time dimension. 2 Kernels can be used: RBF (Squared exponential) and Matérn. The `lamb` has to be specified (> 0), the sample noise too (if you provide less than 1e-5, it will be set to 1e-5). Normalized criterion is set to 1 to be consistent with the results of [1].
+
+Here is an example:
 
 ```python
 import wdbo_criterion
@@ -67,17 +73,15 @@ If, by installing the library using pip, you get a `libwdbo_bayesian.so is not f
 export LD_LIBRARY_PATH=<path to your python packages installed>:$LD_LIBRARY_PATH
 ```
 
-## Context
-
-This project is my bachelor project (2024) at EPFL. It has been supervised by Anthony Bardou from the Information and Network Dynamics Lab (INDY) at EPFL, directed by Prof. Patrick Thiran and Matthias Grossglauser.
-
-The project taught me a lot in the field of Bayesian Optimization (BO) and DBO. Many aspects of computer science in engineering have been involved (memory management, auto-differentiation, numerical methods) and I enjoyed working on the state of the art of DBO by implementing them and seeing the improvements made by W-DBO and it's criterion.
-
 ## License
 
-wdbo_criterion is provided under a BSD-style license that can be found in the LICENSE file. By using, distributing, or contributing to this project, you agree to the terms and conditions of this license.
+wdbo-criterion is provided under a BSD-style license that can be found in the LICENSE file. By using, distributing, or contributing to this project, you agree to the terms and conditions of this license.
 
 ## Links
 
-- Pypi repository of wdbo_criterion: https://pypi.org/project/wdbo-criterion/
-- Pypi repository of (name full algo) : https://pypi.org/project/wdbo-algo/
+- Pypi repository of the criterion: https://pypi.org/project/wdbo-criterion/
+- Pypi repository of W-DBO : https://pypi.org/project/wdbo-algo/
+
+## References
+
+[1] Bardou, A., Thiran, P., & Ranieri, G. (2024). This Too Shall Pass: Removing Stale Observations in Dynamic Bayesian Optimization. arXiv preprint arXiv:2405.14540.
