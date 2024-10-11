@@ -75,6 +75,8 @@ kernel_vec wasserstein_criterion(Eigen::Ref<compatible_storage_order_matrix> dat
         }
     }
 
+    // TODO: ADD TEST ARD KERNEL
+
     if (dynamic_cast<const MaternKernel *>(&kernel_space) != nullptr)
     {
         const MaternKernel *matern = dynamic_cast<const MaternKernel *>(&kernel_space);
@@ -115,9 +117,7 @@ kernel_vec wasserstein_criterion(Eigen::Ref<compatible_storage_order_matrix> dat
     return results_criterion;
 }
 
-/*
-Computes the criterion for each point (returned in a vector)
-*/
+
 kernel_vec wasserstein_critetion_point(kernel_array &kernel_D, const double lambda,
                                        const double variance, Eigen::Ref<kernel_vec> &y_vec, kernel_array &coeff_c_plus,
                                        const int num_obs, const int normalize_criterion)

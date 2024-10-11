@@ -14,6 +14,13 @@ using std::vector;
 class ExpMonome;
 class Constant;
 
+// ----------------------------------------------------------------------------------------
+/*
+This class abstracts the derivatives of a special type of polynomials of the form t^a * (t - b)^c
+where a and c are positive integers and b a real number
+*/
+// ----------------------------------------------------------------------------------------
+
 class Derivative
 {
 public:

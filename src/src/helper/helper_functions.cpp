@@ -52,9 +52,6 @@ double matern_conv_time_coeff(const int p, const double t0,
     return std::exp(-(std::sqrt(2.0 * p + 1.0) * (2.0 * t0 - t)) / l_t);
 }
 
-/*
-Compute the C coefficients of matern kernel
-*/
 double C_k1_k2(const int k1, const int k2, const int p, const double l_t)
 {
     // since k1 and k2 are [0, p], then p - k1 or p - k2 >= 0
@@ -77,9 +74,6 @@ double C_k1_k2(const int k1, const int k2, const int p, const double l_t)
     return first_term * middle_term * last_term;
 }
 
-/*
-Returns the polynomial to differentiate for matern kernel
-*/
 std::shared_ptr<Derivative> P_polynome(const int k1, const int k2, const int p,
                                        kernel_array &param, const int obs)
 {
@@ -88,9 +82,6 @@ std::shared_ptr<Derivative> P_polynome(const int k1, const int k2, const int p,
                                                    std::shared_ptr<Derivative>(new ExpMonome(b, p - k1))));
 }
 
-/*
-Compute the derivatives of the P_polynome for matern kernel
-*/
 void P_function(const int k1, const int k2, const int p, const double l_t,
                 kernel_array &time_diff, kernel_array &param_polynome,
                 const int obs, kernel_array &results)

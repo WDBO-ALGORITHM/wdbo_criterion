@@ -39,6 +39,20 @@ double square_exp_conv_space_kernel(const double norm_squared, const double d, c
     return std::min(1.0, first * exp);
 }
 
+double ard_space_kernel(kernel_vec &xi_minus_xj, const int d, kernel_array &sigma)
+{
+    double exp = xi_minus_xj.transpose() * sigma * xi_minus_xj;
+    return std::exp(-exp / 2.0);
+}
+
+double ard_space_conv_kernel(kernel_vec &xi_minus_xj, const int d, kernel_array &sigma, double determinant)
+{
+    double first = std::pow(M_PI, d / 2.0);
+    double exp = xi_minus_xj.transpose() * sigma * xi_minus_xj;
+
+    return std::exp(-0.25 * exp) * first * determinant;
+}
+
 /*
 (k_T \conv k_T) : convolution of 2 time square exponential kernels
 

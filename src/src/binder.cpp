@@ -25,6 +25,12 @@ PYBIND11_MODULE(wdbo_criterion, m)
         .def("print", &RBFKernel::print)
         .def_readwrite("lengthscale", &RBFKernel::lengthscale);
 
+    py::class_<ARDKernel, KernelParams>(m, "ARDKernel")
+        .def(py::init<double>())
+        .def("params", &ARDKernel::params)
+        .def("print", &ARDKernel::print)
+        .def_readwrite("lengthscales", &ARDKernel::lengthscales);
+
     py::class_<MaternKernel, KernelParams>(m, "MaternKernel")
         .def(py::init<double, double>())
         .def("params", &MaternKernel::params)

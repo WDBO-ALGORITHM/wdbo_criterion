@@ -3,7 +3,13 @@
 
 #include <iostream>
 #include <tuple>
+#include "../bayesian_types.hpp"
+#include <Eigen/Dense>
 
+/**
+ * @brief Kernel abstract class
+ * 
+ */
 class KernelParams
 {
 public:
@@ -12,6 +18,10 @@ public:
     virtual void print() const = 0;
 };
 
+/**
+ * @brief RBF Kernel
+ * 
+ */
 class RBFKernel : public KernelParams
 {
 public:
@@ -29,13 +39,44 @@ public:
     }
 };
 
+/**
+ * @brief ARD Kernel. Vector of spatial lengthscales.
+ * 
+ */
+class ARDKernel : public KernelParams
+{
+public:
+    kernel_vec lengthscales;
+    ARDKernel(kernel_vec lengthscales) : lengthscales(lengthscales) {}
+
+    std::tuple<double, double> params() const override
+    {
+        return std::make_tuple(1.0, 1.0);
+    }
+
+    
+    const kernel_vec &getLengthScales()
+    {
+        return lengthscales;
+    }
+    
+    void print() const override
+    {
+        std::cout << "lengthscales " << std::endl;
+    }
+};
+
+/**
+ * @brief Matern Kernel
+ * 
+ */
 class MaternKernel : public KernelParams
 {
 public:
     double lengthscale;
     double nu;
 
-    MaternKernel(double lengthscale, double nu) : lengthscale(lengthscale), nu(nu){};
+    MaternKernel(double lengthscale, double nu) : lengthscale(lengthscale), nu(nu) {};
 
     std::tuple<double, double> params() const override
     {

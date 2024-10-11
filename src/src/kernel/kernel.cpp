@@ -237,6 +237,115 @@ void create_kernel_and_coeff_C_Plus(kernel_array &k, Eigen::Ref<compatible_stora
         // -------------------------------
         coeff_c_plus = temp_2.cwiseProduct(kernel_conv_time);
     }
+    else if (dynamic_cast<const ARDKernel *>(&kernel_space) != nullptr && dynamic_cast<const RBFKernel *>(&kernel_time) != nullptr)
+    {
+        // SPACE ARD AND TIME EXP
+
+        ARDKernel *ard_space = dynamic_cast<ARDKernel *>(&kernel_space);
+        const RBFKernel *rbf_time = dynamic_cast<const RBFKernel *>(&kernel_time);
+
+        kernel_vec lengthscales_ard = ard_space->getLengthScales();
+
+        double l_t, junk_;
+        std::tie(l_t, junk_) = rbf_time->params();
+
+        kernel_vec ard_inverse = lengthscales_ard.unaryExpr([](double val)
+                                                            { return 1.0 / (val * val); });
+
+        kernel_array sigma_inverse_2(d, d);
+        sigma_inverse_2 = ard_inverse.asDiagonal();
+        double determinant = lengthscales_ard.prod();
+
+        kernel_array temp(num_obs, num_obs);
+        kernel_array temp_2(num_obs, num_obs);
+        kernel_array kernel_time(num_obs, num_obs);
+        kernel_array kernel_conv_time(num_obs, num_obs);
+
+        // -------------------------------
+        // kernel time
+        temp = time_vec.replicate(1, num_obs) - time_vec.transpose().replicate(num_obs, 1);
+        kernel_time = temp.unaryExpr([&l_t](double t)
+                                     { return square_exp_kernel_time(t, l_t); });
+        // -------------------------------
+
+        // -------------------------------
+        // kernel conv time
+        temp_2 = time_vec.replicate(1, num_obs) + time_vec.transpose().replicate(num_obs, 1);
+        square_exp_conv_time_kernel(t0, temp, temp_2, l_t, kernel_conv_time);
+        // -------------------------------
+
+        kernel_vec xi(d), xj(d), xi_minus_xj(d);
+        for (int i = 0; i < num_obs; ++i)
+        {
+            for (int j = 0; j < num_obs; ++j)
+            {
+
+                xi = dataset_x.row(i);
+                xj = dataset_x.row(j);
+                xi_minus_xj = xi - xj;
+
+                k(i, j) = lambda * ard_space_kernel(xi_minus_xj, d, sigma_inverse_2) * kernel_time(i, j);
+                coeff_c_plus(i, j) = kernel_conv_time(i, j) * ard_space_conv_kernel(xi_minus_xj, d, sigma_inverse_2, determinant);
+            }
+        }
+    }
+    else if (dynamic_cast<const ARDKernel *>(&kernel_space) != nullptr && dynamic_cast<const MaternKernel *>(&kernel_time) != nullptr)
+    {
+        // SPACE ARD AND TIME MATERN
+
+        const ARDKernel *ard_space = dynamic_cast<const ARDKernel *>(&kernel_space);
+        const MaternKernel *matern_time = dynamic_cast<const MaternKernel *>(&kernel_time);
+
+        kernel_vec lengthscales_ard = ard_space->lengthscales;
+
+        double l_t, nu_t;
+        std::tie(l_t, nu_t) = matern_time->params();
+
+        kernel_vec ard_inverse = lengthscales_ard.unaryExpr([](double val)
+                                                            { return 1.0 / (val * val); });
+
+        kernel_array sigma_inverse_2(d, d);
+        sigma_inverse_2 = ard_inverse.asDiagonal();
+        double determinant = lengthscales_ard.prod();
+
+        kernel_array temp(num_obs, num_obs);
+        kernel_array temp_2(num_obs, num_obs);
+        kernel_array kernel_time(num_obs, num_obs);
+        kernel_array kernel_conv_time = kernel_array::Zero(num_obs, num_obs);
+        kernel_array results_derivative = kernel_array::Zero(num_obs, num_obs);
+
+        // t0 - ti
+        kernel_array param_polynome = (t0 - time_vec.array()).matrix().replicate(1, num_obs);
+
+        // -------------------------------
+        // kernel time
+        temp = time_vec.replicate(1, num_obs) - time_vec.transpose().replicate(num_obs, 1);
+        kernel_time = temp.unaryExpr([&l_t, &nu_t](double t)
+                                     { return matern_kernel_time(abs(t), nu_t, l_t); });
+        // -------------------------------
+
+        // -------------------------------
+        // kernel conv time
+        temp_2 = time_vec.replicate(1, num_obs) + time_vec.transpose().replicate(num_obs, 1);
+        matern_conv_time_kernel(t0, nu_t, l_t, num_obs, temp, temp_2, param_polynome,
+                                results_derivative, kernel_conv_time);
+        // -------------------------------
+
+        kernel_vec xi(d), xj(d), xi_minus_xj(d);
+        for (int i = 0; i < num_obs; ++i)
+        {
+            for (int j = 0; j < num_obs; ++j)
+            {
+
+                xi = dataset_x.row(i);
+                xj = dataset_x.row(j);
+                xi_minus_xj = xi - xj;
+
+                k(i, j) = lambda * ard_space_kernel(xi_minus_xj, d, sigma_inverse_2) * kernel_time(i, j);
+                coeff_c_plus(i, j) = kernel_conv_time(i, j) * ard_space_conv_kernel(xi_minus_xj, d, sigma_inverse_2, determinant);
+            }
+        }
+    }
 }
 
 void create_kernel_tilde_and_C_plus(kernel_array &matrix_kernel, int index, kernel_array &result_kernel,
