@@ -63,7 +63,40 @@ result = wdbo_criterion.wasserstein_criterion(
 
 The package assumes that `numpy` arrays and matrices are used to provide the dataset because Pybind11 that provides the bindings is optimized for this specific translation. Eigen requires contiguous arrays so maybe you'll need to use the function `np.ascontiguousarray`.
 
-The variable `result` will be an numpy array where each element $0 \leq i < n$ is the criterion associated with the element `inputs[i]`, `y[i]` and `time[i]`.
+The variable `result` will be an numpy array where each element $0 \leq i < n$ is the criterion associated with the element `inputs[i]`, `y[i]` and `time[i]`. To use an ARD Kernel:
+
+```python
+import wdbo_criterion
+import numpy as np
+
+dimension = 5 # dimension of each point
+size_dataset = 4 # number of observations
+lamb = 0.72971242 # lambda of kernels
+variance = 0.3 # variance of the sample noise
+l_ss = np.array([0.2, 0.3, 1, 0.1, 0.2]) # Space Lengthscales
+l_t = 0.18401412 # Time Lengthscale
+t0 = 0.3383822445869446 # current time
+nu_t = 1.5
+
+normalize_criterion = 1
+verbose = 0 # 1 for debug mode
+
+inputs = np.array([
+ [0.9687505, 0.33303383, 0.91202209, 0.05732997, 0.4390582],
+ [0.80951052, 0.80318733, 0.22482374, 0.37230322, 0.98726084],
+ [0.86916179, 0.46339954, 0.21277571, 0.07380144, 0.56478391],
+ [0.40247319, 0.9790963, 0.98341625, 0.54941297, 0.21665171]])
+
+time = np.array([0.04599568, 0.09191627, 0.09606597, 0.06932814])
+y = np.array([-1.39654819, -1.27302667, -1.39127814,  2.10939348])
+
+kernel_space = wdbo_criterion.ARDKernel(l_ss)
+kernel_time = wdbo_criterion.MaternKernel(l_t, nu_t)
+
+result = wdbo_criterion.wasserstein_criterion(
+    inputs, y, time, size_dataset, dimension, lamb, variance, kernel_space, kernel_time, t0, verbose, normalize_criterion)
+
+```
 
 ## Troubleshootings
 
